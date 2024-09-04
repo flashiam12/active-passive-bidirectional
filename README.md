@@ -7,6 +7,8 @@
 
 ### Scaffold
 
+![Alt text](./scaffold.png)
+
 #### 1. Copy the terraform.sample.tfvars into terraform.tfvars
 ```bash
 cp terraform.sample.tfvars terraform.tfvars
