@@ -89,12 +89,12 @@ resource "confluent_transit_gateway_attachment" "secondary" {
 
 data "aws_route_table" "public_subnet_0" {
   vpc_id = data.aws_vpc.default.id
-  subnet_id = "subnet-0aa26a6f8701b0140"
+  subnet_id = var.aws_public_subnet_id_0
 }
 
 data "aws_route_table" "public_subnet_1" {
   vpc_id = data.aws_vpc.default.id
-  subnet_id = "subnet-0c079722df26a24bd"
+  subnet_id = var.aws_public_subnet_id_1
 }
 
 
