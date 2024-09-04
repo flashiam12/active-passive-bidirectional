@@ -6,16 +6,19 @@
 #### 3. Confluent Service account, environment & Cloud API Keys
 
 ### Scaffold
+
 #### 1. Copy the terraform.sample.tfvars into terraform.tfvars
 ```bash
 cp terraform.sample.tfvars terraform.tfvars
 ```
 #### 2. Update the values in terrform.tfvars
+
 #### 3. Setup the initial infrastructure
 ```bash
 terraform init
 terraform apply
 ```
+
 #### 4. Above command will fail while accessing the data plane for CC - like creating mirror topics, topics, acls, rbac, cluster links etc. For this, you required to setup a forward proxy with NGINX. Follow these steps: https://docs.confluent.io/cloud/current/networking/ccloud-console-access.html#configure-a-proxy. Add Both the clusters bootstrap endpoint url in /etc/hosts 
 
 #### 5. After setting up nginx proxy, you must be able to access the cc endpoints. Check with: 
@@ -30,12 +33,9 @@ terraform apply
 ```
 
 
-
 ### Runbook
 
 #### 1. Check the active links on both clusters
-
-
 ```bash
 curl -X GET https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links \
   -u {{src_cluster_api_key}}:{{src_cluster_api_secret}}
@@ -44,7 +44,6 @@ curl -X GET https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_
   -u {{dest_cluster_api_key}}:{{dest_cluster_api_secret}}
 
 ```
-
 
 #### 2. Check the topics on both clusters
 ```bash
@@ -64,21 +63,18 @@ curl -X GET https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_
   -u {{dest_cluster_api_key}}:{{dest_cluster_api_secret}}
 ```
 
-
-
 #### 4. Start a producer & consumer on primary
 
-![Alt text](./assets/steady.png)
+![Alt text](./steady.png)
 
 #### 5. Induce a networking issue by destroying confluent cloud transit gateway attachment on primary
 ```bash
 terraform destroy -target confluent_network.primay-network-transit-gateway
 ```
 
-
 #### 6. Check the producer & consumer on primary
 
-![Alt text](./assets/stop.png)
+![Alt text](./stop.png)
 
 #### 7. Run the mirror and start command on destination cluster
 ```bash
@@ -89,8 +85,8 @@ curl -X POST https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster
     "mirror_topic_names": ["active-passive-a"]
   }'
 ```
-![Alt text](./assets/reverse-and-start-mirror.png)
 
+![Alt text](./reverse-and-start-mirror.png)
 
 #### 8. (Optional) If the above command fails, verify the acls 
 ```bash
@@ -125,20 +121,19 @@ confluent kafka acl create --allow --service-account {{destination_service_accou
 
 #### 9. If the command passes, move the producer and consumer to secondary & also check offset lag between the clusters
 
-![Alt text](./assets/failover.png)
+![Alt text](./failover.png)
 
 #### 10. Start the network connection back
 ```bash
 terraform apply -target confluent_network.primay-network-transit-gateway
 ```
 
-
 #### 11. Check the secondary to primary mirroring on primary mirror topic
 ```bash
 curl -X GET 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{cl_link_id}}/mirrors' --header 'Authorization: Basic {{auth_src_cl}}' --header 'Accept: */*'
 ```
 
-![Alt text](./assets/resume.png)
+![Alt text](./resume.png)
 
 #### 12. Failback to primary by running the reverse-and-start-mirror on the primary mirror topic 
 ```bash
@@ -148,9 +143,12 @@ curl -X POST 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_
 
 ```
 
-![Alt text](./assets/failback.png)
+![Alt text](./failback.png)
 
 #### 13. Move the producer and consumer clients back to primary 
+
+![Alt text](./steady-after-failback.png)
+
 
 ### Teardown
 
