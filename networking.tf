@@ -54,7 +54,7 @@ resource "confluent_network" "secondary-network-transit-gateway" {
 resource "confluent_transit_gateway_attachment" "primary" {
   display_name = "AWS Primary Network Transit Gateway Attachment"
   aws {
-    ram_resource_share_arn = "arn:aws:ram:us-east-2:829250931565:resource-share/8be1c7ad-592e-4384-a3d1-a969274cd2a8"
+    ram_resource_share_arn = "arn:aws:ram:${var.aws_region}:${var.aws_account_number}:resource-share/${var.aws_ec2_transit_gateway_resource_share_arn}"
     transit_gateway_id     = data.aws_ec2_transit_gateway.default.id
     routes                 = [data.aws_vpc.default.cidr_block, local.cc_secondary_network_cidr]
   }
@@ -72,7 +72,7 @@ resource "confluent_transit_gateway_attachment" "primary" {
 resource "confluent_transit_gateway_attachment" "secondary" {
   display_name = "AWS Secondary Network Transit Gateway Attachment"
   aws {
-    ram_resource_share_arn = "arn:aws:ram:us-east-2:829250931565:resource-share/8be1c7ad-592e-4384-a3d1-a969274cd2a8"
+    ram_resource_share_arn = "arn:aws:ram:${var.aws_region}:${var.aws_account_number}:resource-share/${var.aws_ec2_transit_gateway_resource_share_arn}"
     transit_gateway_id     = data.aws_ec2_transit_gateway.default.id
     routes                 = [data.aws_vpc.default.cidr_block, local.cc_primary_network_cidr]
   }
