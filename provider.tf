@@ -29,3 +29,5 @@ variable "aws_account_number" {}
 variable "aws_vpc_id" {}
 variable "aws_ec2_transit_gateway_id" {}
 variable "aws_ec2_transit_gateway_resource_share_arn" {}
+variable "aws_public_subnet_id_0" {}
+variable "aws_public_subnet_id_1" {}
