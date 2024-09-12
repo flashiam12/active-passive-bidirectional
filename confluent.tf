@@ -1,5 +1,5 @@
-data "confluent_environment" "default"{
-    id = var.cc_env
+data "confluent_environment" "default" {
+  id = var.cc_env
 }
 
 data "confluent_service_account" "default" {
@@ -140,8 +140,8 @@ resource "confluent_kafka_topic" "primary" {
   kafka_cluster {
     id = confluent_kafka_cluster.primary.id
   }
-  topic_name         = "active-passive-a"
-  rest_endpoint      = confluent_kafka_cluster.primary.rest_endpoint
+  topic_name    = "active-passive-a"
+  rest_endpoint = confluent_kafka_cluster.primary.rest_endpoint
   credentials {
     key    = confluent_api_key.cluster-api-key-primary.id
     secret = confluent_api_key.cluster-api-key-primary.secret
@@ -150,19 +150,19 @@ resource "confluent_kafka_topic" "primary" {
   lifecycle {
     prevent_destroy = false
   }
-  depends_on = [ 
+  depends_on = [
     confluent_role_binding.cluster-admin-primary,
     confluent_role_binding.topic-read-primary,
     confluent_role_binding.topic-write-primary
-   ]
+  ]
 }
 
 resource "confluent_kafka_topic" "secondary" {
   kafka_cluster {
     id = confluent_kafka_cluster.secondary.id
   }
-  topic_name         = "active-passive-b"
-  rest_endpoint      = confluent_kafka_cluster.secondary.rest_endpoint
+  topic_name    = "active-passive-b"
+  rest_endpoint = confluent_kafka_cluster.secondary.rest_endpoint
   credentials {
     key    = confluent_api_key.cluster-api-key-secondary.id
     secret = confluent_api_key.cluster-api-key-secondary.secret
@@ -171,11 +171,11 @@ resource "confluent_kafka_topic" "secondary" {
   lifecycle {
     prevent_destroy = false
   }
-  depends_on = [ 
+  depends_on = [
     confluent_role_binding.cluster-admin-secondary,
     confluent_role_binding.topic-read-secondary,
     confluent_role_binding.topic-write-secondary
-   ]
+  ]
 }
 
 resource "confluent_cluster_link" "default" {
@@ -183,9 +183,9 @@ resource "confluent_cluster_link" "default" {
   link_mode = "BIDIRECTIONAL"
   config = {
     "consumer.offset.sync.enable" = "true"
-    "consumer.offset.sync.ms" = 1000
-    "topic.config.sync.ms" = 1000
-    "acl.sync.enable" = "true"
+    "consumer.offset.sync.ms"     = 1000
+    "topic.config.sync.ms"        = 1000
+    "acl.sync.enable"             = "true"
   }
   local_kafka_cluster {
     id            = confluent_kafka_cluster.secondary.id
@@ -233,8 +233,8 @@ resource "confluent_cluster_link" "reverse" {
   link_mode = "BIDIRECTIONAL"
   config = {
     "consumer.offset.sync.enable" = "true"
-    "consumer.offset.sync.ms" = 1000
-    "topic.config.sync.ms" = 1000
+    "consumer.offset.sync.ms"     = 1000
+    "topic.config.sync.ms"        = 1000
   }
   local_kafka_cluster {
     id            = confluent_kafka_cluster.primary.id

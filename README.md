@@ -58,10 +58,10 @@ curl -X GET https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_
 
 #### 3. Check the mirror topics on both clusters
 ```bash
-curl -X GET https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{cl_link_id}}/mirrors \
+curl -X GET https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{src_cl_link_name}}/mirrors \
   -u {{src_cluster_api_key}}:{{src_cluster_api_secret}}
 
-curl -X GET https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_id}}/links/{{cl_link_id}}/mirrors \
+curl -X GET https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_id}}/links/{{dest_cl_link_name}}/mirrors \
   -u {{dest_cluster_api_key}}:{{dest_cluster_api_secret}}
 ```
 
@@ -80,7 +80,7 @@ terraform destroy -target confluent_network.primay-network-transit-gateway
 
 #### 7. Run the mirror and start command on destination cluster
 ```bash
-curl -X POST https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_id}}/links/{{cl_link_id}}/mirrors:reverse-and-start-mirror \
+curl -X POST https://{{dest_cluster_bootstrap}}/kafka/v3/clusters/{{dest_cluster_id}}/links/{{dest_cl_link_name}}/mirrors:reverse-and-start-mirror \
   -u {{dest_cluster_api_key}}:{{dest_cluster_api_secret}} \
   -H "Content-Type: application/json" \
   -d '{
@@ -132,14 +132,14 @@ terraform apply -target confluent_network.primay-network-transit-gateway
 
 #### 11. Check the secondary to primary mirroring on primary mirror topic
 ```bash
-curl -X GET 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{cl_link_id}}/mirrors' --header 'Authorization: Basic {{auth_src_cl}}' --header 'Accept: */*'
+curl -X GET 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{src_cl_link_name}}/mirrors' --header 'Authorization: Basic {{auth_src_cl}}' --header 'Accept: */*'
 ```
 
 ![Alt text](./resume.png)
 
 #### 12. Failback to primary by running the reverse-and-start-mirror on the primary mirror topic 
 ```bash
-curl -X POST 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{cl_link_id}}/mirrors:reverse-and-start-mirror' --header 'Authorization: Basic {{auth_src_cl}}' --header 'Content-Type: application/json' --data '{
+curl -X POST 'https://{{src_cluster_bootstrap}}/kafka/v3/clusters/{{src_cluster_id}}/links/{{src_cl_link_name}}/mirrors:reverse-and-start-mirror' --header 'Authorization: Basic {{auth_src_cl}}' --header 'Content-Type: application/json' --data '{
     "mirror_topic_names": ["{{primary_mirror_topic}}"]
   }'
 
