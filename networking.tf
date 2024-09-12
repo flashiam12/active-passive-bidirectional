@@ -1,5 +1,5 @@
 locals {
-  cc_primary_network_cidr = "172.18.0.0/16"
+  cc_primary_network_cidr   = "172.18.0.0/16"
   cc_secondary_network_cidr = "172.16.0.0/16"
 }
 
@@ -13,12 +13,12 @@ data "aws_vpc" "default" {
 
 resource "aws_ram_principal_association" "primary-network-aws-account" {
   resource_share_arn = "arn:aws:ram:${var.aws_region}:${var.aws_account_number}:resource-share/${var.aws_ec2_transit_gateway_resource_share_arn}"
-  principal = confluent_network.primay-network-transit-gateway.aws[0].account
+  principal          = confluent_network.primay-network-transit-gateway.aws[0].account
 }
 
 resource "aws_ram_principal_association" "secondary-network-aws-account" {
   resource_share_arn = "arn:aws:ram:${var.aws_region}:${var.aws_account_number}:resource-share/${var.aws_ec2_transit_gateway_resource_share_arn}"
-  principal = confluent_network.secondary-network-transit-gateway.aws[0].account
+  principal          = confluent_network.secondary-network-transit-gateway.aws[0].account
 }
 
 resource "confluent_network" "primay-network-transit-gateway" {
@@ -88,26 +88,26 @@ resource "confluent_transit_gateway_attachment" "secondary" {
 }
 
 data "aws_route_table" "public_subnet_0" {
-  vpc_id = data.aws_vpc.default.id
+  vpc_id    = data.aws_vpc.default.id
   subnet_id = var.aws_public_subnet_id_0
 }
 
 data "aws_route_table" "public_subnet_1" {
-  vpc_id = data.aws_vpc.default.id
+  vpc_id    = data.aws_vpc.default.id
   subnet_id = var.aws_public_subnet_id_1
 }
 
 
 resource "aws_route" "cc_primary_network" {
-  for_each = toset([data.aws_route_table.public_subnet_0.id, data.aws_route_table.public_subnet_1.id])
-  route_table_id = each.value
+  for_each               = toset([data.aws_route_table.public_subnet_0.id, data.aws_route_table.public_subnet_1.id])
+  route_table_id         = each.value
   destination_cidr_block = confluent_network.primay-network-transit-gateway.cidr
-  transit_gateway_id = data.aws_ec2_transit_gateway.default.id
+  transit_gateway_id     = data.aws_ec2_transit_gateway.default.id
 }
 
 resource "aws_route" "cc_secondary_network" {
-  for_each = toset([data.aws_route_table.public_subnet_0.id, data.aws_route_table.public_subnet_1.id])
-  route_table_id = each.value
+  for_each               = toset([data.aws_route_table.public_subnet_0.id, data.aws_route_table.public_subnet_1.id])
+  route_table_id         = each.value
   destination_cidr_block = confluent_network.secondary-network-transit-gateway.cidr
-  transit_gateway_id = data.aws_ec2_transit_gateway.default.id
+  transit_gateway_id     = data.aws_ec2_transit_gateway.default.id
 }

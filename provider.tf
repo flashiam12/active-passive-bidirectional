@@ -2,20 +2,20 @@ terraform {
   required_providers {
     confluent = {
       source = "confluentinc/confluent"
-    #   version = "1.76.0"
+      #   version = "1.76.0"
     }
   }
 }
 
 provider "confluent" {
-    cloud_api_key = var.cc_cloud_api_key
-    cloud_api_secret = var.cc_cloud_api_secret
+  cloud_api_key    = var.cc_cloud_api_key
+  cloud_api_secret = var.cc_cloud_api_secret
 }
 
 provider "aws" {
   access_key = var.aws_key
   secret_key = var.aws_secret
-  region = var.aws_region
+  region     = var.aws_region
 }
 
 variable "cc_cloud_api_key" {}
