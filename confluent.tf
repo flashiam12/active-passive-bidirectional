@@ -47,39 +47,38 @@ resource "confluent_kafka_cluster" "secondary" {
   }
 }
 
-resource "confluent_role_binding" "cluster-admin-primary" {
+/*
+  Create role bindings for the service accounts
+  See https://docs.confluent.io/cloud/current/multi-cloud/cluster-linking/security-cloud.html#rbac-roles-and-ak-acls-summary 
+*/
+
+resource "confluent_role_binding" "primary" {
+  for_each = toset(["CloudClusterAdmin", "Operator"])
+
   principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "CloudClusterAdmin"
+  role_name   = each.value
   crn_pattern = confluent_kafka_cluster.primary.rbac_crn
 }
+resource "confluent_role_binding" "topics_primary" {
+  for_each = toset(["DeveloperRead", "ResourceOwner"])
 
-resource "confluent_role_binding" "cluster-admin-secondary" {
   principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "CloudClusterAdmin"
+  role_name   = each.value
+  crn_pattern = "${confluent_kafka_cluster.primary.rbac_crn}/kafka=${confluent_kafka_cluster.primary.id}/topic=*"
+}
+
+resource "confluent_role_binding" "secondary" {
+  for_each = toset(["CloudClusterAdmin", "Operator"])
+
+  principal   = "User:${data.confluent_service_account.default.id}"
+  role_name   = each.value
   crn_pattern = confluent_kafka_cluster.secondary.rbac_crn
 }
+resource "confluent_role_binding" "topics_secondary" {
+  for_each = toset(["DeveloperRead", "ResourceOwner"])
 
-resource "confluent_role_binding" "topic-write-primary" {
   principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "DeveloperWrite"
-  crn_pattern = "${confluent_kafka_cluster.primary.rbac_crn}/kafka=${confluent_kafka_cluster.primary.id}/topic=*"
-}
-
-resource "confluent_role_binding" "topic-write-secondary" {
-  principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "DeveloperWrite"
-  crn_pattern = "${confluent_kafka_cluster.secondary.rbac_crn}/kafka=${confluent_kafka_cluster.secondary.id}/topic=*"
-}
-
-resource "confluent_role_binding" "topic-read-primary" {
-  principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "DeveloperRead"
-  crn_pattern = "${confluent_kafka_cluster.primary.rbac_crn}/kafka=${confluent_kafka_cluster.primary.id}/topic=*"
-}
-
-resource "confluent_role_binding" "topic-read-secondary" {
-  principal   = "User:${data.confluent_service_account.default.id}"
-  role_name   = "DeveloperRead"
+  role_name   = each.value
   crn_pattern = "${confluent_kafka_cluster.secondary.rbac_crn}/kafka=${confluent_kafka_cluster.secondary.id}/topic=*"
 }
 
@@ -90,7 +89,7 @@ resource "confluent_role_binding" "topic-read-secondary" {
 
 resource "confluent_api_key" "cluster-api-key-primary" {
   display_name = "primary-active-passive-kafka-api-key"
-  description  = "Kafka API Key that is owned by centene service account"
+  description  = "Kafka API Key to manage the primary cluster"
   owner {
     id          = data.confluent_service_account.default.id
     api_version = data.confluent_service_account.default.api_version
@@ -114,7 +113,7 @@ resource "confluent_api_key" "cluster-api-key-primary" {
 
 resource "confluent_api_key" "cluster-api-key-secondary" {
   display_name = "secondary-active-passive-kafka--api-key"
-  description  = "Kafka API Key that is owned by centene service account"
+  description  = "Kafka API Key to manage the secondary cluster"
   owner {
     id          = data.confluent_service_account.default.id
     api_version = data.confluent_service_account.default.api_version
@@ -151,30 +150,8 @@ resource "confluent_kafka_topic" "primary" {
     prevent_destroy = false
   }
   depends_on = [
-    confluent_role_binding.cluster-admin-primary,
-    confluent_role_binding.topic-read-primary,
-    confluent_role_binding.topic-write-primary
-  ]
-}
-
-resource "confluent_kafka_topic" "secondary" {
-  kafka_cluster {
-    id = confluent_kafka_cluster.secondary.id
-  }
-  topic_name    = "active-passive-b"
-  rest_endpoint = confluent_kafka_cluster.secondary.rest_endpoint
-  credentials {
-    key    = confluent_api_key.cluster-api-key-secondary.id
-    secret = confluent_api_key.cluster-api-key-secondary.secret
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
-  depends_on = [
-    confluent_role_binding.cluster-admin-secondary,
-    confluent_role_binding.topic-read-secondary,
-    confluent_role_binding.topic-write-secondary
+    confluent_role_binding.topics_primary,
+    confluent_role_binding.topics_secondary,
   ]
 }
 
@@ -256,4 +233,3 @@ resource "confluent_cluster_link" "reverse" {
     prevent_destroy = false
   }
 }
-
